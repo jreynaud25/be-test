@@ -1,1 +1,0 @@
-{"version":3,"sources":["css/base.css"],"names":[],"mappings":"AAAA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA","file":"base.98fd6c19.css","sourceRoot":"../src","sourcesContent":["\n#wrapper-1 {\n\topacity: 1;\n  }\n  \n  #wrapper-2 {\n\topacity: 0;\n  }\n\n  .cls-1 {\n\tfill: black !important;\n  }"]}
