@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BE. EFFECT</title>
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="author" content="Codrops" />
+    <link rel="shortcut icon" href="favicon.ico" />
+    <link rel="stylesheet" href="https://use.typekit.net/dba6omz.css" />
+    <link rel="stylesheet" type="text/css" href="css/base.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+    <script>
+      document.documentElement.className = "js";
+      var supportsCssVars = function () {
+        var e,
+          t = document.createElement("style");
+        return (
+          (t.innerHTML = "root: { --tmp-var: bold; }"),
+          document.head.appendChild(t),
+          (e = !!(
+            window.CSS &&
+            window.CSS.supports &&
+            window.CSS.supports("font-weight", "var(--tmp-var)")
+          )),
+          t.parentNode.removeChild(t),
+          e
+        );
+      };
+      supportsCssVars() ||
+        alert(
+          "Please view this demo in a modern browser that supports CSS Variables."
+        );
+    </script>
+  </head>
+  <body class="demo-1 loading">
+    <main>
+      <nav class="menu">
+        <div class="menu__item">
+          <svg
+            class="menu__text"
+            id="menuSVG"
+            viewBox="0 0 1920 1080"
+            preserveAspectRatio="xMinYMid meet"
+          >
+            <defs>
+              <filter id="goo-1">
+                <feGaussianBlur
+                  in="SourceGraphic"
+                  stdDeviation="15"
+                  result="blur"
+                ></feGaussianBlur>
+                <feColorMatrix
+                  in="blur"
+                  mode="matrix"
+                  id="colorMatrix"
+                  values="1 0 0 0 0 0 3 0 0 0 1 0 1 0 0 0 0 0 18 -5"
+                  result="goo"
+                ></feColorMatrix>
+                <feComposite
+                  in="SourceGraphic"
+                  in2="goo"
+                  operator="atop"
+                ></feComposite>
+              </filter>
+            </defs>
+            <g>
+              <g id="wrapper-1">
+                <text
+                  x="960"
+                  y="540"
+                  id="text1"
+                  text-anchor="middle"
+                  dominant-baseline="middle"
+                  font-size="100"
+                >
+                  Be.
+                </text>
+              </g>
+              <g id="wrapper-2">
+                <text
+                  x="960"
+                  y="540"
+                  id="text2"
+                  text-anchor="middle"
+                  dominant-baseline="middle"
+                  font-size="100"
+                >
+                  كن
+                </text>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </nav>
+    </main>
+    <script src="js/demo2/index.js"></script>
+  </body>
+</html>
