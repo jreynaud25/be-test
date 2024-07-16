@@ -1,3 +1,6 @@
+.menu__text {
+  display: none;
+}
 
 #wrapper-1 {
 	opacity: 1;
@@ -9,4 +12,9 @@
 
   .cls-1 {
 	fill: black !important;
+  }
+
+  canvas {
+    height: calc(1080px / 2);
+    width: calc(1920px /2);
   }
