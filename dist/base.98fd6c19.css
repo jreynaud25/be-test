@@ -1,3 +1,6 @@
+.menu__text {
+  display: none;
+}
 
 #wrapper-1 {
 	opacity: 1;
@@ -9,6 +12,18 @@
 
   .cls-1 {
 	fill: black !important;
+  }
+
+  canvas {
+    height: calc(1080px / 2);
+    width: calc(1920px /2);
+  }
+
+  #circleCanvas {
+    position: fixed;
+    z-index: 10000;
+    top: 0;
+    left: 0;
   }
 
 /*# sourceMappingURL=/base.98fd6c19.css.map */

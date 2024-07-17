@@ -3,24 +3,11 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>BE. EFFECT</title>
-    <meta name="description" content="">
-    <meta name="keywords" content="">
-    <meta name="author" content="Codrops">
-    <link rel="shortcut icon" href="/favicon.26242483.ico">
+    <title>SVG to Canvas Particles</title>
     <link rel="stylesheet" href="https://use.typekit.net/dba6omz.css">
     <link rel="stylesheet" type="text/css" href="/base.98fd6c19.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
-    <script>document.documentElement.className = "js";
-var supportsCssVars = function supportsCssVars() {
-  var e,
-    t = document.createElement("style");
-  return t.innerHTML = "root: { --tmp-var: bold; }", document.head.appendChild(t), e = !!(window.CSS && window.CSS.supports && window.CSS.supports("font-weight", "var(--tmp-var)")), t.parentNode.removeChild(t), e;
-};
-supportsCssVars() || alert("Please view this demo in a modern browser that supports CSS Variables.");</script>
   <script src="/base.98fd6c19.js"></script></head>
-  <body class="demo-1 loading">
+  <body>
     <main>
       <nav class="menu">
         <div class="menu__item">
@@ -48,6 +35,12 @@ supportsCssVars() || alert("Please view this demo in a modern browser that suppo
         </div>
       </nav>
     </main>
+    <canvas style="display: none" id="outputCanvas" width="960" height="540"></canvas>
+    <div class="canvas-wrapper">
+      <canvas id="sandCanvas" width="960" height="540"></canvas>
+      <canvas id="circleCanvas" width="960" height="540"></canvas>
+    </div>
+
     <script src="/demo1.151408fb.js"></script>
   </body>
 </html>

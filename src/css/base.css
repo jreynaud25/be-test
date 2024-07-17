@@ -18,3 +18,10 @@
     height: calc(1080px / 2);
     width: calc(1920px /2);
   }
+
+  #circleCanvas {
+    position: fixed;
+    z-index: 10000;
+    top: 0;
+    left: 0;
+  }

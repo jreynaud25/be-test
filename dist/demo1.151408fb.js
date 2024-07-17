@@ -7992,13 +7992,12 @@ function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" 
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 var MenuItem = /*#__PURE__*/function () {
   function MenuItem(el) {
-    var _this = this;
     _classCallCheck(this, MenuItem);
     this.DOM = {
       el: el
     };
-    this.DOM.textsGroupEl = this.DOM.el.querySelector("svg > g");
-    this.filterId = this.DOM.el.querySelector("svg filter").id;
+    this.DOM.textsGroupEl = el.querySelector("svg > g");
+    this.filterId = el.querySelector("svg filter").id;
     this.DOM.wrapper1 = this.DOM.textsGroupEl.querySelector("#wrapper-1");
     this.DOM.wrapper2 = this.DOM.textsGroupEl.querySelector("#wrapper-2");
     this.DOM.feBlur = document.querySelector("#".concat(this.filterId, " > feGaussianBlur"));
@@ -8007,9 +8006,7 @@ var MenuItem = /*#__PURE__*/function () {
       stdDeviation: 15
     };
     this.settings = {
-      playPause: function playPause() {
-        return _this.onPlayPauseClick();
-      },
+      playPause: this.onPlayPauseClick.bind(this),
       duration: 1.6,
       stdDeviation: 1,
       loop: false,
@@ -8022,18 +8019,10 @@ var MenuItem = /*#__PURE__*/function () {
         a: [0, 0, 0, 18, -5]
       },
       timeline: 0,
-      uploadSVG1: function uploadSVG1() {
-        return _this.uploadSVG(_this.DOM.wrapper1, "one");
-      },
-      uploadSVG2: function uploadSVG2() {
-        return _this.uploadSVG(_this.DOM.wrapper2, "two");
-      },
-      saveJSON: function saveJSON() {
-        return _this.saveJSON();
-      },
-      loadJSON: function loadJSON() {
-        return _this.loadJSON();
-      }
+      uploadSVG1: this.uploadSVG.bind(this, this.DOM.wrapper1, "one"),
+      uploadSVG2: this.uploadSVG.bind(this, this.DOM.wrapper2, "two"),
+      saveJSON: this.saveJSON.bind(this),
+      loadJSON: this.loadJSON.bind(this)
     };
     this.initGUI();
     this.createTimeline();
@@ -8042,34 +8031,21 @@ var MenuItem = /*#__PURE__*/function () {
   return _createClass(MenuItem, [{
     key: "initGUI",
     value: function initGUI() {
-      var _this2 = this;
+      var _this = this;
       var gui = new dat.GUI();
       gui.add(this.settings, "playPause").name("Play/Pause");
-      gui.add(this.settings, "duration", 0.1, 10, 0.1).onChange(function () {
-        return _this2.onDurationChange();
-      });
-      gui.add(this.settings, "stdDeviation", 0, 50, 0.1).onChange(function () {
-        return _this2.onStdDeviationChange();
-      });
-      gui.add(this.settings, "loop").onChange(function () {
-        return _this2.onLoopChange();
-      });
-      gui.add(this.settings, "text1").onChange(function () {
-        return _this2.onText1Change();
-      });
-      gui.add(this.settings, "text2").onChange(function () {
-        return _this2.onText2Change();
-      });
-      gui.add(this.settings, "timeline", 0, 1, 0.01).onChange(function () {
-        return _this2.onTimelineChange();
-      });
+      gui.add(this.settings, "duration", 0.1, 10, 0.1).onChange(this.onDurationChange.bind(this));
+      gui.add(this.settings, "stdDeviation", 0, 50, 0.1).onChange(this.onStdDeviationChange.bind(this));
+      gui.add(this.settings, "loop").onChange(this.onLoopChange.bind(this));
+      gui.add(this.settings, "text1").onChange(this.onText1Change.bind(this));
+      gui.add(this.settings, "text2").onChange(this.onText2Change.bind(this));
+      gui.add(this.settings, "timeline", 0, 1, 0.01).onChange(this.onTimelineChange.bind(this));
       var colorMatrixFolder = gui.addFolder("Color Matrix");
+      var lastFourIndices = [1, 2, 3, 4];
       var _loop = function _loop() {
         var channel = _arr[_i];
-        _this2.settings.colorMatrix[channel].forEach(function (val, i) {
-          colorMatrixFolder.add(_this2.settings.colorMatrix[channel], "".concat(i), -10, 50, 0.1).onChange(function () {
-            return _this2.onColorMatrixChange();
-          });
+        lastFourIndices.forEach(function (i) {
+          colorMatrixFolder.add(_this.settings.colorMatrix[channel], "".concat(i), -10, 50, 0.1).onChange(_this.onColorMatrixChange.bind(_this));
         });
       };
       for (var _i = 0, _arr = ["r", "g", "b", "a"]; _i < _arr.length; _i++) {
@@ -8088,11 +8064,7 @@ var MenuItem = /*#__PURE__*/function () {
   }, {
     key: "onPlayPauseClick",
     value: function onPlayPauseClick() {
-      if (this.tl.paused()) {
-        this.tl.play();
-      } else {
-        this.tl.pause();
-      }
+      this.tl.paused() ? this.tl.play() : this.tl.pause();
     }
   }, {
     key: "onTimelineChange",
@@ -8131,19 +8103,19 @@ var MenuItem = /*#__PURE__*/function () {
   }, {
     key: "onText1Change",
     value: function onText1Change() {
-      this.DOM.wrapper1.innerHTML = "<text  x=\"960\" y=\"540\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"100\" class=\"one\">".concat(this.settings.text1, "</text>");
+      this.DOM.wrapper1.innerHTML = "<text x=\"960\" y=\"540\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"100\" class=\"one\">".concat(this.settings.text1, "</text>");
       this.updateTextElements();
     }
   }, {
     key: "onText2Change",
     value: function onText2Change() {
-      this.DOM.wrapper2.innerHTML = "<text x=\"960\" y=\"540\"  text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"100\"  class=\"two\">".concat(this.settings.text2, "</text>");
+      this.DOM.wrapper2.innerHTML = "<text x=\"960\" y=\"540\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"100\" class=\"two\">".concat(this.settings.text2, "</text>");
       this.updateTextElements();
     }
   }, {
     key: "uploadSVG",
     value: function uploadSVG(target, className) {
-      var _this3 = this;
+      var _this2 = this;
       var input = document.createElement("input");
       input.type = "file";
       input.accept = "image/svg+xml";
@@ -8157,26 +8129,18 @@ var MenuItem = /*#__PURE__*/function () {
           if (svg) {
             var viewBox = svg.viewBox.baseVal;
             var aspectRatio = viewBox.width / viewBox.height;
-
-            // Set max height to 1080 and calculate width based on aspect ratio
             var maxHeight = 1080;
             var maxWidth = maxHeight * aspectRatio;
-
-            // Update SVG attributes
             svg.setAttribute("width", "100%");
             svg.setAttribute("height", "100%");
             svg.classList.add(className);
-
-            // Center SVG
             svg.style.maxHeight = "".concat(maxHeight, "px");
             svg.style.maxWidth = "".concat(maxWidth, "px");
             svg.style.display = "block";
             svg.style.margin = "0 auto";
-
-            // Clear any existing content and append the new SVG
             target.innerHTML = "";
             target.appendChild(svg);
-            _this3.updateTextElements();
+            _this2.updateTextElements();
           }
         };
         reader.readAsText(file);
@@ -8188,8 +8152,6 @@ var MenuItem = /*#__PURE__*/function () {
     value: function updateTextElements() {
       this.DOM.wrapper1 = this.DOM.textsGroupEl.querySelector("#wrapper-1");
       this.DOM.wrapper2 = this.DOM.textsGroupEl.querySelector("#wrapper-2");
-
-      // Ensure the newly updated elements have their initial states set correctly.
       this.DOM.wrapper1.style.opacity = 1;
       this.DOM.wrapper2.style.opacity = 0;
     }
@@ -8212,7 +8174,7 @@ var MenuItem = /*#__PURE__*/function () {
   }, {
     key: "loadJSON",
     value: function loadJSON() {
-      var _this4 = this;
+      var _this3 = this;
       var input = document.createElement("input");
       input.type = "file";
       input.accept = "application/json";
@@ -8221,13 +8183,13 @@ var MenuItem = /*#__PURE__*/function () {
         var reader = new FileReader();
         reader.onload = function (e) {
           var loadedSettings = JSON.parse(e.target.result);
-          Object.assign(_this4.settings, loadedSettings);
-          _this4.onDurationChange();
-          _this4.onStdDeviationChange();
-          _this4.onColorMatrixChange();
-          _this4.onLoopChange();
-          _this4.onText1Change();
-          _this4.onText2Change();
+          Object.assign(_this3.settings, loadedSettings);
+          _this3.onDurationChange();
+          _this3.onStdDeviationChange();
+          _this3.onColorMatrixChange();
+          _this3.onLoopChange();
+          _this3.onText1Change();
+          _this3.onText2Change();
         };
         reader.readAsText(file);
       };
@@ -8236,14 +8198,14 @@ var MenuItem = /*#__PURE__*/function () {
   }, {
     key: "createTimeline",
     value: function createTimeline() {
-      var _this5 = this;
+      var _this4 = this;
       var duration = this.settings.duration;
       this.tl = _gsap.gsap.timeline({
         paused: true,
         repeat: this.settings.loop ? -1 : 0,
         onUpdate: function onUpdate() {
-          _this5.DOM.feBlur.setAttribute("stdDeviation", _this5.primitiveValues.stdDeviation);
-          _this5.settings.timeline = _this5.tl.progress();
+          _this4.DOM.feBlur.setAttribute("stdDeviation", _this4.primitiveValues.stdDeviation);
+          _this4.settings.timeline = _this4.tl.progress();
         }
       }).to(this.primitiveValues, {
         duration: duration / 2,
@@ -8252,7 +8214,7 @@ var MenuItem = /*#__PURE__*/function () {
           stdDeviation: 0
         },
         stdDeviation: function stdDeviation() {
-          return _this5.settings.stdDeviation * 10;
+          return _this4.settings.stdDeviation * 10;
         }
       }, 0).to(this.primitiveValues, {
         duration: duration / 2,
@@ -8303,36 +8265,400 @@ var Menu = exports.default = /*#__PURE__*/_createClass(function Menu(el) {
     return _this.items.push(new _menuItem.default(item));
   });
 });
-},{"./menuItem":"js/demo1/menuItem.js"}],"js/utils.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.preloadFonts = void 0;
-// Preload images
-var preloadFonts = exports.preloadFonts = function preloadFonts(id) {
-  return new Promise(function (resolve, reject) {
-    WebFont.load({
-      typekit: {
-        id: id
-      },
-      active: resolve
-    });
-  });
-};
-},{}],"js/demo1/index.js":[function(require,module,exports) {
+},{"./menuItem":"js/demo1/menuItem.js"}],"js/demo1/index.js":[function(require,module,exports) {
 "use strict";
 
 var _menu = _interopRequireDefault(require("./menu"));
-var _utils = require("../utils");
+var dat = _interopRequireWildcard(require("dat.gui"));
+function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
+function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-// Preload typekit fonts
-(0, _utils.preloadFonts)('dba6omz').then(function () {
-  document.body.classList.remove('loading');
+// Ensure the DOM is fully loaded
+document.addEventListener("DOMContentLoaded", function () {
+  // Instantiate the Menu class
+  var menu = new _menu.default(document.querySelector("nav.menu"));
+
+  // Get the SVG element and the canvas elements
+  var svgElement = document.getElementById("menuSVG");
+  var outputCanvas = document.getElementById("outputCanvas");
+  var sandCanvas = document.getElementById("sandCanvas");
+  var circleCanvas = document.getElementById("circleCanvas");
+  if (!svgElement) {
+    console.error("SVG element not found!");
+    return;
+  }
+  if (!outputCanvas || !sandCanvas || !circleCanvas) {
+    console.error("Canvas element not found!");
+    return;
+  }
+  var ctx = outputCanvas.getContext("2d");
+  var gl = sandCanvas.getContext("webgl");
+  var circleCtx = circleCanvas.getContext("2d");
+  if (!ctx) {
+    console.error("Failed to get 2D context for outputCanvas!");
+    return;
+  }
+  if (!gl) {
+    console.error("Failed to get WebGL context for sandCanvas!");
+    return;
+  }
+  if (!circleCtx) {
+    console.error("Failed to get 2D context for circleCanvas!");
+    return;
+  }
+  var settings = {
+    randomness: 0.05,
+    color: [194, 178, 128],
+    // RGB color for sand
+    zoneRadius: 50,
+    circleRadius: 30,
+    // Initial circle radius
+    particleCount: 500000,
+    // Number of particles
+    particleSize: 4,
+    // Size of particles
+    shaderRandomness: 0.1,
+    showCircleCanvas: true,
+    strokeWidth: 10,
+    strokeHardness: 0.5,
+    strokeOpacity: 1,
+    saveAsPNG: function saveAsPNG() {
+      return saveCanvasAsPNG();
+    }
+  };
+  var gui = new dat.GUI();
+  gui.add(settings, "randomness", 0, 0.2).step(0.01).name("Randomness").onChange(initializeParticles);
+  gui.addColor(settings, "color").name("Sand Color").onChange(initializeParticles);
+  gui.add(settings, "zoneRadius", 10, 100).name("Zone Radius");
+  gui.add(settings, "circleRadius", 10, 100).name("Circle Radius");
+  gui.add(settings, "particleCount", 1000, 1000000).name("Particle Count").onChange(initializeParticles);
+  gui.add(settings, "particleSize", 1, 10).name("Particle Size").onChange(initializeParticles);
+  gui.add(settings, "shaderRandomness", 0, 1).name("Shader Randomness").onChange(initializeParticles);
+  gui.add(settings, "showCircleCanvas").name("Show Circle Canvas").onChange(toggleCircleCanvas);
+  gui.add(settings, "strokeWidth", 1, 100).name("Stroke Width").onChange(updateStrokeSettings);
+  gui.add(settings, "strokeHardness", 0, 1).name("Stroke Hardness").onChange(updateStrokeSettings);
+  gui.add(settings, "strokeOpacity", 0, 1).name("Stroke Opacity").onChange(updateStrokeSettings);
+  gui.add(settings, "saveAsPNG").name("Save as PNG");
+
+  // Create custom file input elements
+  var shaderInput = document.createElement('input');
+  shaderInput.type = 'file';
+  shaderInput.accept = '.frag,.shader';
+  shaderInput.style.display = 'none';
+  shaderInput.addEventListener('change', function (event) {
+    return handleShaderUpload(event.target.files[0]);
+  });
+  var imageInput = document.createElement('input');
+  imageInput.type = 'file';
+  imageInput.accept = 'image/*';
+  imageInput.style.display = 'none';
+  imageInput.addEventListener('change', function (event) {
+    return handleImageUpload(event.target.files[0]);
+  });
+
+  // Add buttons to the GUI to trigger file inputs
+  gui.add({
+    uploadShader: function uploadShader() {
+      return shaderInput.click();
+    }
+  }, 'uploadShader').name('Upload Shader');
+  gui.add({
+    uploadImage: function uploadImage() {
+      return imageInput.click();
+    }
+  }, 'uploadImage').name('Upload Image');
+
+  // Append the file input elements to the body
+  document.body.appendChild(shaderInput);
+  document.body.appendChild(imageInput);
+  function toggleCircleCanvas() {
+    circleCanvas.style.display = settings.showCircleCanvas ? 'block' : 'none';
+  }
+
+  // Ensure the sandCanvas has the same size as outputCanvas
+  function resizeCanvas() {
+    sandCanvas.width = outputCanvas.width;
+    sandCanvas.height = outputCanvas.height;
+    circleCanvas.width = outputCanvas.width;
+    circleCanvas.height = outputCanvas.height;
+    gl.viewport(0, 0, sandCanvas.width, sandCanvas.height);
+  }
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  // Function to render SVG to canvas
+  function renderSVGToCanvas(svgElement, canvas, ctx) {
+    var svgData = new XMLSerializer().serializeToString(svgElement);
+    var img = new Image();
+    var svgBlob = new Blob([svgData], {
+      type: "image/svg+xml;charset=utf-8"
+    });
+    var url = URL.createObjectURL(svgBlob);
+    img.onload = function () {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+
+      // After drawing the SVG to the canvas, copy it to the sandCanvas and initialize the particles
+      copyCanvasToWebGLTexture();
+      initializeParticles();
+    };
+    img.src = url;
+  }
+
+  // Render the SVG onto the canvas initially
+  renderSVGToCanvas(svgElement, outputCanvas, ctx);
+
+  // Create an observer to watch for changes in the SVG
+  var observer = new MutationObserver(function () {
+    renderSVGToCanvas(svgElement, outputCanvas, ctx);
+  });
+
+  // Configure the observer to watch for changes in the subtree and attributes
+  observer.observe(svgElement, {
+    attributes: true,
+    childList: true,
+    subtree: true
+  });
+
+  // Function to copy the outputCanvas to sandCanvas as a texture
+  function copyCanvasToWebGLTexture() {
+    // Create a texture
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    // Define the texture parameters
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    // Upload the canvas content to the texture
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, outputCanvas);
+
+    // Use the texture
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+  }
+
+  // Declare shader and buffer locations globally
+  var positionLocation, pointSizeLocation, colorLocation, positionBuffer, pointSizeBuffer, particlePositions, particleSizes;
+
+  // Initialize WebGL and particle system
+  function initializeParticles() {
+    var vertexShaderSource = "\n            attribute vec2 a_position;\n            attribute float a_pointSize;\n            void main() {\n                gl_PointSize = a_pointSize;\n                gl_Position = vec4(a_position, 0.0, 1.0);\n            }\n        ";
+    var fragmentShaderSource = "\n            precision mediump float;\n            uniform vec3 u_color;\n            void main() {\n                gl_FragColor = vec4(u_color, 1.0);\n            }\n        ";
+    if (settings.shaderFile) {
+      fragmentShaderSource = settings.shaderFile;
+    }
+    var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+    var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+    var program = createProgram(gl, vertexShader, fragmentShader);
+    gl.useProgram(program);
+    positionLocation = gl.getAttribLocation(program, "a_position");
+    pointSizeLocation = gl.getAttribLocation(program, "a_pointSize");
+    colorLocation = gl.getUniformLocation(program, "u_color");
+    positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    function createParticles(width, height) {
+      var imageData = ctx.getImageData(0, 0, width, height);
+      var data = imageData.data;
+      var circleImageData = circleCtx.getImageData(0, 0, width, height).data;
+      var particles = [];
+      var positions = [];
+      var sizes = [];
+
+      // Collect pixel positions
+      for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+          var index = (y * width + x) * 4;
+          var alpha = data[index + 3];
+
+          // Only consider non-transparent pixels
+          if (alpha > 0) {
+            particles.push({
+              x: x,
+              y: y
+            });
+          }
+        }
+      }
+
+      // Distribute particles with added randomness
+      var particlesToDistribute = Math.min(settings.particleCount, particles.length);
+      for (var i = 0; i < particlesToDistribute; i++) {
+        var pixel = particles[Math.floor(Math.random() * particles.length)];
+        var nx = pixel.x / width * 2 - 1 + (Math.random() - 0.5) * settings.randomness; // Adding more randomness
+        var ny = 1 - pixel.y / height * 2 + (Math.random() - 0.5) * settings.randomness; // Adding more randomness
+
+        // Apply shader randomness based on the black stroke
+        var shaderIndex = (pixel.y * width + pixel.x) * 4;
+        var shaderAlpha = circleImageData[shaderIndex + 3];
+        var additionalRandomness = (shaderAlpha > 0 ? settings.shaderRandomness : 0) * (Math.random() - 0.5);
+        positions.push(nx + additionalRandomness, ny + additionalRandomness); // POSITION SHADER
+        sizes.push(Math.random() * settings.particleSize + 1); // Random size between 1 and particleSize
+      }
+      return {
+        positions: new Float32Array(positions),
+        sizes: new Float32Array(sizes)
+      };
+    }
+    var particles = createParticles(outputCanvas.width, outputCanvas.height);
+    particlePositions = particles.positions;
+    particleSizes = particles.sizes;
+    gl.bufferData(gl.ARRAY_BUFFER, particlePositions, gl.STATIC_DRAW);
+    pointSizeBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, pointSizeBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, particleSizes, gl.STATIC_DRAW);
+
+    // Render particles once after copying canvas
+    renderParticles();
+  }
+  function renderParticles() {
+    // Ensure the WebGL canvas is cleared before drawing
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Set the particle color
+    gl.uniform3f(colorLocation, settings.color[0] / 255, settings.color[1] / 255, settings.color[2] / 255);
+
+    // Enable vertex attributes and draw the particles
+    gl.enableVertexAttribArray(positionLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(pointSizeLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, pointSizeBuffer);
+    gl.vertexAttribPointer(pointSizeLocation, 1, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.POINTS, 0, particlePositions.length / 2);
+  }
+  function createShader(gl, type, source) {
+    var shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      console.error(gl.getShaderInfoLog(shader));
+      gl.deleteShader(shader);
+      return null;
+    }
+    return shader;
+  }
+  function createProgram(gl, vertexShader, fragmentShader) {
+    var program = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error(gl.getProgramInfoLog(program));
+      return null;
+    }
+    return program;
+  }
+  function saveCanvasAsPNG() {
+    // Log the canvas size to ensure it's correct
+    console.log("Canvas size: ".concat(sandCanvas.width, "x").concat(sandCanvas.height));
+
+    // Render particles to ensure the canvas is up to date
+    renderParticles();
+
+    // Log a message before rendering
+    console.log('Saving canvas as PNG...');
+
+    // Ensure WebGL rendering is complete
+    gl.finish();
+
+    // Convert canvas to Blob and save as PNG
+    sandCanvas.toBlob(function (blob) {
+      if (!blob) {
+        console.error('Failed to create blob from canvas');
+        return;
+      }
+
+      // Log the blob size to ensure it has content
+      console.log("Blob size: ".concat(blob.size));
+      var link = document.createElement('a');
+      var url = URL.createObjectURL(blob);
+      link.href = url;
+      link.download = 'sand_canvas.png';
+      link.click();
+
+      // Clean up
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  }
+
+  // Drawing on the circleCanvas
+  var drawing = false;
+  circleCanvas.addEventListener('mousedown', function () {
+    drawing = true;
+    circleCtx.beginPath();
+  });
+  circleCanvas.addEventListener('mouseup', function () {
+    return drawing = false;
+  });
+  circleCanvas.addEventListener('mouseout', function () {
+    return drawing = false;
+  });
+  circleCanvas.addEventListener('mousemove', function (event) {
+    if (drawing) {
+      var rect = circleCanvas.getBoundingClientRect();
+      var x = event.clientX - rect.left;
+      var y = event.clientY - rect.top;
+      drawStroke(x, y);
+    }
+  });
+  function drawStroke(x, y) {
+    var hardness = settings.strokeHardness;
+    var gradient = circleCtx.createRadialGradient(x, y, 0, x, y, settings.strokeWidth);
+    gradient.addColorStop(0, "rgba(0, 0, 0, ".concat(settings.strokeOpacity, ")"));
+    gradient.addColorStop(hardness, "rgba(0, 0, 0, ".concat(settings.strokeOpacity, ")"));
+    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+    circleCtx.fillStyle = gradient;
+    circleCtx.fillRect(x - settings.strokeWidth, y - settings.strokeWidth, settings.strokeWidth * 2, settings.strokeWidth * 2);
+  }
+  function updateStrokeSettings() {
+    // This function can be used to update any other settings or reset states if needed
+    // For now, it's left empty as we only need to update the drawing settings directly
+  }
+  function handleShaderUpload(file) {
+    var reader = new FileReader();
+    reader.onload = function (event) {
+      settings.shaderFile = event.target.result;
+      initializeParticles();
+    };
+    reader.readAsText(file);
+  }
+  function handleImageUpload(file) {
+    var reader = new FileReader();
+    reader.onload = function (event) {
+      var img = new Image();
+      img.onload = function () {
+        var blackAndAlphaCanvas = document.createElement('canvas');
+        blackAndAlphaCanvas.width = img.width;
+        blackAndAlphaCanvas.height = img.height;
+        var blackAndAlphaCtx = blackAndAlphaCanvas.getContext('2d');
+        blackAndAlphaCtx.drawImage(img, 0, 0);
+        var imageData = blackAndAlphaCtx.getImageData(0, 0, img.width, img.height);
+        var data = imageData.data;
+        for (var i = 0; i < data.length; i += 4) {
+          var grayscale = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+          data[i] = 0; // Black
+          data[i + 1] = 0; // Black
+          data[i + 2] = 0; // Black
+          data[i + 3] = grayscale; // Alpha
+        }
+        blackAndAlphaCtx.putImageData(imageData, 0, 0);
+        ctx.drawImage(blackAndAlphaCanvas, 0, 0, outputCanvas.width, outputCanvas.height);
+        copyCanvasToWebGLTexture();
+        initializeParticles();
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Initialize canvas and GUI settings
+  resizeCanvas();
+  toggleCircleCanvas();
 });
-var menu = new _menu.default(document.querySelector('nav.menu'));
-},{"./menu":"js/demo1/menu.js","../utils":"js/utils.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./menu":"js/demo1/menu.js","dat.gui":"../node_modules/dat.gui/build/dat.gui.module.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -8357,7 +8683,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64898" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65237" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

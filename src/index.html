@@ -1,38 +1,84 @@
 <!DOCTYPE html>
 <html lang="en" class="no-js">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SVG to Canvas Particles</title>
     <link rel="stylesheet" href="https://use.typekit.net/dba6omz.css" />
     <link rel="stylesheet" type="text/css" href="css/base.css" />
-</head>
-<body>
+  </head>
+  <body>
     <main>
-        <nav class="menu">
-            <div class="menu__item">
-                <svg class="menu__text" id="menuSVG" viewBox="0 0 1920 1080" preserveAspectRatio="xMinYMid meet">
-                    <defs>
-                        <filter id="goo-1">
-                            <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur"></feGaussianBlur>
-                            <feColorMatrix in="blur" mode="matrix" id="colorMatrix" values="1 0 0 0 0 0 3 0 0 0 1 0 1 0 0 0 0 0 18 -5" result="goo"></feColorMatrix>
-                            <feComposite in="SourceGraphic" in2="goo" operator="atop"></feComposite>
-                        </filter>
-                    </defs>
-                    <g>
-                        <g id="wrapper-1">
-                            <text x="960" y="540" id="text1" text-anchor="middle" dominant-baseline="middle" font-size="100">Be.</text>
-                        </g>
-                        <g id="wrapper-2">
-                            <text x="960" y="540" id="text2" text-anchor="middle" dominant-baseline="middle" font-size="100">كن</text>
-                        </g>
-                    </g>
-                </svg>
-            </div>
-        </nav>
+      <nav class="menu">
+        <div class="menu__item">
+          <svg
+            class="menu__text"
+            id="menuSVG"
+            viewBox="0 0 1920 1080"
+            preserveAspectRatio="xMinYMid meet"
+          >
+            <defs>
+              <filter id="goo-1">
+                <feGaussianBlur
+                  in="SourceGraphic"
+                  stdDeviation="15"
+                  result="blur"
+                ></feGaussianBlur>
+                <feColorMatrix
+                  in="blur"
+                  mode="matrix"
+                  id="colorMatrix"
+                  values="1 0 0 0 0 0 3 0 0 0 1 0 1 0 0 0 0 0 18 -5"
+                  result="goo"
+                ></feColorMatrix>
+                <feComposite
+                  in="SourceGraphic"
+                  in2="goo"
+                  operator="atop"
+                ></feComposite>
+              </filter>
+            </defs>
+            <g>
+              <g id="wrapper-1">
+                <text
+                  x="960"
+                  y="540"
+                  id="text1"
+                  text-anchor="middle"
+                  dominant-baseline="middle"
+                  font-size="100"
+                >
+                  Be.
+                </text>
+              </g>
+              <g id="wrapper-2">
+                <text
+                  x="960"
+                  y="540"
+                  id="text2"
+                  text-anchor="middle"
+                  dominant-baseline="middle"
+                  font-size="100"
+                >
+                  كن
+                </text>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </nav>
     </main>
-    <canvas id="outputCanvas" width="1920" height="1080"></canvas>
-    <canvas id="sandCanvas" width="1920" height="1080"></canvas>
+    <canvas
+      style="display: none"
+      id="outputCanvas"
+      width="960"
+      height="540"
+    ></canvas>
+    <div class="canvas-wrapper">
+      <canvas id="sandCanvas" width="960" height="540"></canvas>
+      <canvas id="circleCanvas" width="960" height="540"></canvas>
+    </div>
+
     <script src="js/demo1/index.js"></script>
-</body>
+  </body>
 </html>

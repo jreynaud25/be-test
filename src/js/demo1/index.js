@@ -10,39 +10,119 @@ document.addEventListener("DOMContentLoaded", () => {
   const svgElement = document.getElementById("menuSVG");
   const outputCanvas = document.getElementById("outputCanvas");
   const sandCanvas = document.getElementById("sandCanvas");
+  const circleCanvas = document.getElementById("circleCanvas");
 
   if (!svgElement) {
     console.error("SVG element not found!");
     return;
   }
 
-  if (!outputCanvas || !sandCanvas) {
+  if (!outputCanvas || !sandCanvas || !circleCanvas) {
     console.error("Canvas element not found!");
     return;
   }
 
   const ctx = outputCanvas.getContext("2d");
   const gl = sandCanvas.getContext("webgl");
+  const circleCtx = circleCanvas.getContext("2d");
+
+  if (!ctx) {
+    console.error("Failed to get 2D context for outputCanvas!");
+    return;
+  }
+
+  if (!gl) {
+    console.error("Failed to get WebGL context for sandCanvas!");
+    return;
+  }
+
+  if (!circleCtx) {
+    console.error("Failed to get 2D context for circleCanvas!");
+    return;
+  }
 
   const settings = {
     randomness: 0.05,
     color: [194, 178, 128], // RGB color for sand
+    zoneRadius: 50,
+    circleRadius: 30, // Initial circle radius
+    particleCount: 500000, // Number of particles
+    particleSize: 4, // Size of particles
+    shaderRandomness: 0.1,
+    showCircleCanvas: true,
+    strokeWidth: 10,
+    strokeHardness: 0.5,
+    strokeOpacity: 1,
     saveAsPNG: () => saveCanvasAsPNG(),
   };
 
   const gui = new dat.GUI();
-  gui
-    .add(settings, "randomness", 0, 0.2)
+  gui.add(settings, "randomness", 0, 0.2)
     .step(0.01)
     .name("Randomness")
     .onChange(initializeParticles);
-  gui.addColor(settings, "color").name("Sand Color").onChange(initializeParticles);
-  gui.add(settings, "saveAsPNG").name("Save as PNG");
+  gui.addColor(settings, "color")
+    .name("Sand Color")
+    .onChange(initializeParticles);
+  gui.add(settings, "zoneRadius", 10, 100)
+    .name("Zone Radius");
+  gui.add(settings, "circleRadius", 10, 100)
+    .name("Circle Radius");
+  gui.add(settings, "particleCount", 1000, 1000000)
+    .name("Particle Count")
+    .onChange(initializeParticles);
+  gui.add(settings, "particleSize", 1, 10)
+    .name("Particle Size")
+    .onChange(initializeParticles);
+  gui.add(settings, "shaderRandomness", 0, 1)
+    .name("Shader Randomness")
+    .onChange(initializeParticles);
+  gui.add(settings, "showCircleCanvas")
+    .name("Show Circle Canvas")
+    .onChange(toggleCircleCanvas);
+  gui.add(settings, "strokeWidth", 1, 100)
+    .name("Stroke Width")
+    .onChange(updateStrokeSettings);
+  gui.add(settings, "strokeHardness", 0, 1)
+    .name("Stroke Hardness")
+    .onChange(updateStrokeSettings);
+  gui.add(settings, "strokeOpacity", 0, 1)
+    .name("Stroke Opacity")
+    .onChange(updateStrokeSettings);
+  gui.add(settings, "saveAsPNG")
+    .name("Save as PNG");
+
+  // Create custom file input elements
+  const shaderInput = document.createElement('input');
+  shaderInput.type = 'file';
+  shaderInput.accept = '.frag,.shader';
+  shaderInput.style.display = 'none';
+  shaderInput.addEventListener('change', (event) => handleShaderUpload(event.target.files[0]));
+
+  const imageInput = document.createElement('input');
+  imageInput.type = 'file';
+  imageInput.accept = 'image/*';
+  imageInput.style.display = 'none';
+  imageInput.addEventListener('change', (event) => handleImageUpload(event.target.files[0]));
+
+  // Add buttons to the GUI to trigger file inputs
+  gui.add({ uploadShader: () => shaderInput.click() }, 'uploadShader').name('Upload Shader');
+  gui.add({ uploadImage: () => imageInput.click() }, 'uploadImage').name('Upload Image');
+
+  // Append the file input elements to the body
+  document.body.appendChild(shaderInput);
+  document.body.appendChild(imageInput);
+
+  function toggleCircleCanvas() {
+    circleCanvas.style.display = settings.showCircleCanvas ? 'block' : 'none';
+  }
 
   // Ensure the sandCanvas has the same size as outputCanvas
   function resizeCanvas() {
     sandCanvas.width = outputCanvas.width;
     sandCanvas.height = outputCanvas.height;
+    circleCanvas.width = outputCanvas.width;
+    circleCanvas.height = outputCanvas.height;
     gl.viewport(0, 0, sandCanvas.width, sandCanvas.height);
   }
 
@@ -53,9 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderSVGToCanvas(svgElement, canvas, ctx) {
     const svgData = new XMLSerializer().serializeToString(svgElement);
     const img = new Image();
-    const svgBlob = new Blob([svgData], {
-      type: "image/svg+xml;charset=utf-8",
-    });
+    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
@@ -98,14 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
     // Upload the canvas content to the texture
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.RGBA,
-      gl.RGBA,
-      gl.UNSIGNED_BYTE,
-      outputCanvas
-    );
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, outputCanvas);
 
     // Use the texture
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -117,11 +188,12 @@ document.addEventListener("DOMContentLoaded", () => {
     colorLocation,
     positionBuffer,
     pointSizeBuffer,
-    particlePositions;
+    particlePositions,
+    particleSizes;
 
   // Initialize WebGL and particle system
   function initializeParticles() {
-    const vertexShaderSource = `
+    let vertexShaderSource = `
             attribute vec2 a_position;
             attribute float a_pointSize;
             void main() {
@@ -130,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         `;
 
-    const fragmentShaderSource = `
+    let fragmentShaderSource = `
             precision mediump float;
             uniform vec3 u_color;
             void main() {
@@ -138,12 +210,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         `;
 
+    if (settings.shaderFile) {
+      fragmentShaderSource = settings.shaderFile;
+    }
+
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    const fragmentShader = createShader(
-      gl,
-      gl.FRAGMENT_SHADER,
-      fragmentShaderSource
-    );
+    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
     const program = createProgram(gl, vertexShader, fragmentShader);
 
     gl.useProgram(program);
@@ -158,9 +230,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function createParticles(width, height) {
       const imageData = ctx.getImageData(0, 0, width, height);
       const data = imageData.data;
+      const circleImageData = circleCtx.getImageData(0, 0, width, height).data;
 
       const particles = [];
-      const numParticles = 500000;
       const positions = [];
       const sizes = [];
 
@@ -177,11 +249,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      // Log number of particles found
-      console.log(`Found ${particles.length} particles`);
-
       // Distribute particles with added randomness
-      const particlesToDistribute = Math.min(numParticles, particles.length);
+      const particlesToDistribute = Math.min(settings.particleCount, particles.length);
       for (let i = 0; i < particlesToDistribute; i++) {
         const pixel = particles[Math.floor(Math.random() * particles.length)];
         const nx =
@@ -192,12 +261,15 @@ document.addEventListener("DOMContentLoaded", () => {
           1 -
           (pixel.y / height) * 2 +
           (Math.random() - 0.5) * settings.randomness; // Adding more randomness
-        positions.push(nx, ny);
-        sizes.push(Math.random() * 3 + 1); // Random size between 1 and 4
-      }
 
-      // Log particle positions for debugging
-      console.log("Particle positions:", positions);
+        // Apply shader randomness based on the black stroke
+        const shaderIndex = (pixel.y * width + pixel.x) * 4;
+        const shaderAlpha = circleImageData[shaderIndex + 3];
+        const additionalRandomness = (shaderAlpha > 0 ? settings.shaderRandomness : 0) * (Math.random() - 0.5);
+
+        positions.push(nx + additionalRandomness, ny + additionalRandomness); // POSITION SHADER
+        sizes.push(Math.random() * settings.particleSize + 1); // Random size between 1 and particleSize
+      }
 
       return {
         positions: new Float32Array(positions),
@@ -207,7 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const particles = createParticles(outputCanvas.width, outputCanvas.height);
     particlePositions = particles.positions;
-    const particleSizes = particles.sizes;
+    particleSizes = particles.sizes;
 
     gl.bufferData(gl.ARRAY_BUFFER, particlePositions, gl.STATIC_DRAW);
 
@@ -277,23 +349,101 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Convert canvas to Blob and save as PNG
     sandCanvas.toBlob((blob) => {
-        if (!blob) {
-            console.error('Failed to create blob from canvas');
-            return;
-        }
+      if (!blob) {
+        console.error('Failed to create blob from canvas');
+        return;
+      }
 
-        // Log the blob size to ensure it has content
-        console.log(`Blob size: ${blob.size}`);
+      // Log the blob size to ensure it has content
+      console.log(`Blob size: ${blob.size}`);
 
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = 'sand_canvas.png';
-        link.click();
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.download = 'sand_canvas.png';
+      link.click();
 
-        // Clean up
-        URL.revokeObjectURL(url);
+      // Clean up
+      URL.revokeObjectURL(url);
     }, 'image/png');
-}
+  }
 
+  // Drawing on the circleCanvas
+  let drawing = false;
+
+  circleCanvas.addEventListener('mousedown', () => {
+    drawing = true;
+    circleCtx.beginPath();
+  });
+  circleCanvas.addEventListener('mouseup', () => drawing = false);
+  circleCanvas.addEventListener('mouseout', () => drawing = false);
+
+  circleCanvas.addEventListener('mousemove', (event) => {
+    if (drawing) {
+      const rect = circleCanvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      drawStroke(x, y);
+    }
+  });
+
+  function drawStroke(x, y) {
+    const hardness = settings.strokeHardness;
+    const gradient = circleCtx.createRadialGradient(x, y, 0, x, y, settings.strokeWidth);
+    gradient.addColorStop(0, `rgba(0, 0, 0, ${settings.strokeOpacity})`);
+    gradient.addColorStop(hardness, `rgba(0, 0, 0, ${settings.strokeOpacity})`);
+    gradient.addColorStop(1, `rgba(0, 0, 0, 0)`);
+
+    circleCtx.fillStyle = gradient;
+    circleCtx.fillRect(x - settings.strokeWidth, y - settings.strokeWidth, settings.strokeWidth * 2, settings.strokeWidth * 2);
+  }
+
+  function updateStrokeSettings() {
+    // This function can be used to update any other settings or reset states if needed
+    // For now, it's left empty as we only need to update the drawing settings directly
+  }
+
+  function handleShaderUpload(file) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      settings.shaderFile = event.target.result;
+      initializeParticles();
+    };
+    reader.readAsText(file);
+  }
+
+  function handleImageUpload(file) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const blackAndAlphaCanvas = document.createElement('canvas');
+        blackAndAlphaCanvas.width = img.width;
+        blackAndAlphaCanvas.height = img.height;
+        const blackAndAlphaCtx = blackAndAlphaCanvas.getContext('2d');
+        blackAndAlphaCtx.drawImage(img, 0, 0);
+
+        const imageData = blackAndAlphaCtx.getImageData(0, 0, img.width, img.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const grayscale = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+          data[i] = 0; // Black
+          data[i + 1] = 0; // Black
+          data[i + 2] = 0; // Black
+          data[i + 3] = grayscale; // Alpha
+        }
+        blackAndAlphaCtx.putImageData(imageData, 0, 0);
+
+        ctx.drawImage(blackAndAlphaCanvas, 0, 0, outputCanvas.width, outputCanvas.height);
+        copyCanvasToWebGLTexture();
+        initializeParticles();
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Initialize canvas and GUI settings
+  resizeCanvas();
+  toggleCircleCanvas();
 });
