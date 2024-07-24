@@ -8003,7 +8003,8 @@ var MenuItem = /*#__PURE__*/function () {
     this.DOM.feBlur = document.querySelector("#".concat(this.filterId, " > feGaussianBlur"));
     this.DOM.feColorMatrix = document.getElementById("colorMatrix");
     this.primitiveValues = {
-      stdDeviation: 15
+      stdDeviation: 15,
+      delta: 1
     };
     this.settings = {
       playPause: this.onPlayPauseClick.bind(this),
@@ -8080,8 +8081,7 @@ var MenuItem = /*#__PURE__*/function () {
   }, {
     key: "onStdDeviationChange",
     value: function onStdDeviationChange() {
-      this.DOM.feBlur.setAttribute("stdDeviation", this.settings.stdDeviation);
-      this.primitiveValues.stdDeviation = this.settings.stdDeviation;
+      this.primitiveValues.delta = this.settings.stdDeviation;
     }
   }, {
     key: "onColorMatrixChange",
@@ -8103,13 +8103,13 @@ var MenuItem = /*#__PURE__*/function () {
   }, {
     key: "onText1Change",
     value: function onText1Change() {
-      this.DOM.wrapper1.innerHTML = "<text x=\"960\" y=\"540\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"100\" class=\"one\">".concat(this.settings.text1, "</text>");
+      this.DOM.wrapper1.innerHTML = "<text x=\"960\" y=\"540\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"400\" class=\"one\">".concat(this.settings.text1, "</text>");
       this.updateTextElements();
     }
   }, {
     key: "onText2Change",
     value: function onText2Change() {
-      this.DOM.wrapper2.innerHTML = "<text x=\"960\" y=\"540\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"100\" class=\"two\">".concat(this.settings.text2, "</text>");
+      this.DOM.wrapper2.innerHTML = "<text x=\"960\" y=\"540\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"400\" class=\"two\">".concat(this.settings.text2, "</text>");
       this.updateTextElements();
     }
   }, {
@@ -8204,8 +8204,10 @@ var MenuItem = /*#__PURE__*/function () {
         paused: true,
         repeat: this.settings.loop ? -1 : 0,
         onUpdate: function onUpdate() {
-          _this4.DOM.feBlur.setAttribute("stdDeviation", _this4.primitiveValues.stdDeviation);
-          _this4.settings.timeline = _this4.tl.progress();
+          var progress = _this4.tl.progress();
+          var stdDeviationValue = _this4.primitiveValues.delta * 10 * progress;
+          _this4.DOM.feBlur.setAttribute("stdDeviation", stdDeviationValue);
+          _this4.settings.timeline = progress;
         }
       }).to(this.primitiveValues, {
         duration: duration / 2,
@@ -8213,9 +8215,7 @@ var MenuItem = /*#__PURE__*/function () {
         startAt: {
           stdDeviation: 0
         },
-        stdDeviation: function stdDeviation() {
-          return _this4.settings.stdDeviation * 10;
-        }
+        stdDeviation: this.settings.stdDeviation * 10
       }, 0).to(this.primitiveValues, {
         duration: duration / 2,
         ease: "none",
@@ -8340,14 +8340,7 @@ document.addEventListener("DOMContentLoaded", function () {
   gui.add(settings, "strokeOpacity", 0, 1).name("Stroke Opacity").onChange(updateStrokeSettings);
   gui.add(settings, "saveAsPNG").name("Save as PNG");
 
-  // Create custom file input elements
-  var shaderInput = document.createElement('input');
-  shaderInput.type = 'file';
-  shaderInput.accept = '.frag,.shader';
-  shaderInput.style.display = 'none';
-  shaderInput.addEventListener('change', function (event) {
-    return handleShaderUpload(event.target.files[0]);
-  });
+  // Create custom file input element for image upload
   var imageInput = document.createElement('input');
   imageInput.type = 'file';
   imageInput.accept = 'image/*';
@@ -8356,20 +8349,14 @@ document.addEventListener("DOMContentLoaded", function () {
     return handleImageUpload(event.target.files[0]);
   });
 
-  // Add buttons to the GUI to trigger file inputs
-  gui.add({
-    uploadShader: function uploadShader() {
-      return shaderInput.click();
-    }
-  }, 'uploadShader').name('Upload Shader');
+  // Add button to the GUI to trigger file input
   gui.add({
     uploadImage: function uploadImage() {
       return imageInput.click();
     }
   }, 'uploadImage').name('Upload Image');
 
-  // Append the file input elements to the body
-  document.body.appendChild(shaderInput);
+  // Append the file input element to the body
   document.body.appendChild(imageInput);
   function toggleCircleCanvas() {
     circleCanvas.style.display = settings.showCircleCanvas ? 'block' : 'none';
@@ -8617,37 +8604,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // This function can be used to update any other settings or reset states if needed
     // For now, it's left empty as we only need to update the drawing settings directly
   }
-  function handleShaderUpload(file) {
-    var reader = new FileReader();
-    reader.onload = function (event) {
-      settings.shaderFile = event.target.result;
-      initializeParticles();
-    };
-    reader.readAsText(file);
-  }
   function handleImageUpload(file) {
     var reader = new FileReader();
     reader.onload = function (event) {
       var img = new Image();
       img.onload = function () {
-        var blackAndAlphaCanvas = document.createElement('canvas');
-        blackAndAlphaCanvas.width = img.width;
-        blackAndAlphaCanvas.height = img.height;
-        var blackAndAlphaCtx = blackAndAlphaCanvas.getContext('2d');
-        blackAndAlphaCtx.drawImage(img, 0, 0);
-        var imageData = blackAndAlphaCtx.getImageData(0, 0, img.width, img.height);
-        var data = imageData.data;
-        for (var i = 0; i < data.length; i += 4) {
-          var grayscale = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-          data[i] = 0; // Black
-          data[i + 1] = 0; // Black
-          data[i + 2] = 0; // Black
-          data[i + 3] = grayscale; // Alpha
-        }
-        blackAndAlphaCtx.putImageData(imageData, 0, 0);
-        ctx.drawImage(blackAndAlphaCanvas, 0, 0, outputCanvas.width, outputCanvas.height);
-        copyCanvasToWebGLTexture();
-        initializeParticles();
+        circleCtx.clearRect(0, 0, circleCanvas.width, circleCanvas.height);
+        circleCtx.drawImage(img, 0, 0, circleCanvas.width, circleCanvas.height);
+        initializeParticles(); // Update particles based on the new image
       };
       img.src = event.target.result;
     };
@@ -8683,7 +8647,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65237" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51946" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

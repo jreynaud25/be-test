@@ -92,25 +92,17 @@ document.addEventListener("DOMContentLoaded", () => {
   gui.add(settings, "saveAsPNG")
     .name("Save as PNG");
 
-  // Create custom file input elements
-  const shaderInput = document.createElement('input');
-  shaderInput.type = 'file';
-  shaderInput.accept = '.frag,.shader';
-  shaderInput.style.display = 'none';
-  shaderInput.addEventListener('change', (event) => handleShaderUpload(event.target.files[0]));
-
+  // Create custom file input element for image upload
   const imageInput = document.createElement('input');
   imageInput.type = 'file';
   imageInput.accept = 'image/*';
   imageInput.style.display = 'none';
   imageInput.addEventListener('change', (event) => handleImageUpload(event.target.files[0]));
 
-  // Add buttons to the GUI to trigger file inputs
-  gui.add({ uploadShader: () => shaderInput.click() }, 'uploadShader').name('Upload Shader');
+  // Add button to the GUI to trigger file input
   gui.add({ uploadImage: () => imageInput.click() }, 'uploadImage').name('Upload Image');
 
-  // Append the file input elements to the body
-  document.body.appendChild(shaderInput);
+  // Append the file input element to the body
   document.body.appendChild(imageInput);
 
   function toggleCircleCanvas() {
@@ -403,40 +395,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // For now, it's left empty as we only need to update the drawing settings directly
   }
 
-  function handleShaderUpload(file) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      settings.shaderFile = event.target.result;
-      initializeParticles();
-    };
-    reader.readAsText(file);
-  }
-
   function handleImageUpload(file) {
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
-        const blackAndAlphaCanvas = document.createElement('canvas');
-        blackAndAlphaCanvas.width = img.width;
-        blackAndAlphaCanvas.height = img.height;
-        const blackAndAlphaCtx = blackAndAlphaCanvas.getContext('2d');
-        blackAndAlphaCtx.drawImage(img, 0, 0);
-
-        const imageData = blackAndAlphaCtx.getImageData(0, 0, img.width, img.height);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-          const grayscale = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-          data[i] = 0; // Black
-          data[i + 1] = 0; // Black
-          data[i + 2] = 0; // Black
-          data[i + 3] = grayscale; // Alpha
-        }
-        blackAndAlphaCtx.putImageData(imageData, 0, 0);
-
-        ctx.drawImage(blackAndAlphaCanvas, 0, 0, outputCanvas.width, outputCanvas.height);
-        copyCanvasToWebGLTexture();
-        initializeParticles();
+        circleCtx.clearRect(0, 0, circleCanvas.width, circleCanvas.height);
+        circleCtx.drawImage(img, 0, 0, circleCanvas.width, circleCanvas.height);
+        initializeParticles(); // Update particles based on the new image
       };
       img.src = event.target.result;
     };

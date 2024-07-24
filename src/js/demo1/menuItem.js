@@ -12,7 +12,7 @@ class MenuItem {
 
     this.DOM.feBlur = document.querySelector(`#${this.filterId} > feGaussianBlur`);
     this.DOM.feColorMatrix = document.getElementById("colorMatrix");
-    this.primitiveValues = { stdDeviation: 15 };
+    this.primitiveValues = { stdDeviation: 15, delta: 1 };
 
     this.settings = {
       playPause: this.onPlayPauseClick.bind(this),
@@ -80,8 +80,7 @@ class MenuItem {
   }
 
   onStdDeviationChange() {
-    this.DOM.feBlur.setAttribute("stdDeviation", this.settings.stdDeviation);
-    this.primitiveValues.stdDeviation = this.settings.stdDeviation;
+    this.primitiveValues.delta = this.settings.stdDeviation;
   }
 
   onColorMatrixChange() {
@@ -96,12 +95,12 @@ class MenuItem {
   }
 
   onText1Change() {
-    this.DOM.wrapper1.innerHTML = `<text x="960" y="540" text-anchor="middle" dominant-baseline="middle" font-size="100" class="one">${this.settings.text1}</text>`;
+    this.DOM.wrapper1.innerHTML = `<text x="960" y="540" text-anchor="middle" dominant-baseline="middle" font-size="400" class="one">${this.settings.text1}</text>`;
     this.updateTextElements();
   }
 
   onText2Change() {
-    this.DOM.wrapper2.innerHTML = `<text x="960" y="540" text-anchor="middle" dominant-baseline="middle" font-size="100" class="two">${this.settings.text2}</text>`;
+    this.DOM.wrapper2.innerHTML = `<text x="960" y="540" text-anchor="middle" dominant-baseline="middle" font-size="400" class="two">${this.settings.text2}</text>`;
     this.updateTextElements();
   }
 
@@ -193,15 +192,17 @@ class MenuItem {
       paused: true,
       repeat: this.settings.loop ? -1 : 0,
       onUpdate: () => {
-        this.DOM.feBlur.setAttribute("stdDeviation", this.primitiveValues.stdDeviation);
-        this.settings.timeline = this.tl.progress();
+        const progress = this.tl.progress();
+        const stdDeviationValue = this.primitiveValues.delta * 10 * progress;
+        this.DOM.feBlur.setAttribute("stdDeviation", stdDeviationValue);
+        this.settings.timeline = progress;
       },
     })
     .to(this.primitiveValues, {
       duration: duration / 2,
       ease: "none",
       startAt: { stdDeviation: 0 },
-      stdDeviation: () => this.settings.stdDeviation * 10,
+      stdDeviation: this.settings.stdDeviation * 10,
     }, 0)
     .to(this.primitiveValues, {
       duration: duration / 2,
@@ -219,8 +220,6 @@ class MenuItem {
       opacity: 1,
     }, 0);
   }
-
-  
 }
 
 export default MenuItem;
