@@ -8036,7 +8036,7 @@ var MenuItem = /*#__PURE__*/function () {
       var gui = new dat.GUI();
       gui.add(this.settings, "playPause").name("Play/Pause");
       gui.add(this.settings, "duration", 0.1, 10, 0.1).onChange(this.onDurationChange.bind(this));
-      gui.add(this.settings, "stdDeviation", 0, 50, 0.1).onChange(this.onStdDeviationChange.bind(this));
+      gui.add(this.settings, "stdDeviation", 0, 10, 0.01).onChange(this.onStdDeviationChange.bind(this));
       gui.add(this.settings, "loop").onChange(this.onLoopChange.bind(this));
       gui.add(this.settings, "text1").onChange(this.onText1Change.bind(this));
       gui.add(this.settings, "text2").onChange(this.onText2Change.bind(this));
@@ -8647,7 +8647,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51946" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52708" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

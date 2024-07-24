@@ -43,7 +43,7 @@ class MenuItem {
     const gui = new dat.GUI();
     gui.add(this.settings, "playPause").name("Play/Pause");
     gui.add(this.settings, "duration", 0.1, 10, 0.1).onChange(this.onDurationChange.bind(this));
-    gui.add(this.settings, "stdDeviation", 0, 50, 0.1).onChange(this.onStdDeviationChange.bind(this));
+    gui.add(this.settings, "stdDeviation", 0, 10, 0.01).onChange(this.onStdDeviationChange.bind(this));
     gui.add(this.settings, "loop").onChange(this.onLoopChange.bind(this));
     gui.add(this.settings, "text1").onChange(this.onText1Change.bind(this));
     gui.add(this.settings, "text2").onChange(this.onText2Change.bind(this));
